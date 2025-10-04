@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Query Builder for Missing Dates</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* gray-100 */
+        }
+        /* Simple scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e5e7eb; /* gray-200 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #9ca3af; /* gray-400 */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280; /* gray-500 */
+        }
+    </style>
+</head>
+<body class="antialiased text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Missing Dates Query Builder</h1>
+            <p class="text-lg text-gray-600 mt-2">Select tables to check for missing date entries and generate your BigQuery SQL.</p>
+        </header>
+
+        <div class="flex flex-col lg:flex-row gap-8">
+
+            <!-- Left Panel: Controls -->
+            <div class="lg:w-1/3 bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
+                <div class="space-y-6">
+                    <div>
+                        <label for="projectId" class="block text-sm font-medium text-gray-700 mb-1">Project ID</label>
+                        <input type="text" id="projectId" value="bg-outbrain-bi" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    </div>
+                    <div>
+                        <label for="datasetId" class="block text-sm font-medium text-gray-700 mb-1">Dataset ID</label>
+                        <input type="text" id="datasetId" value="mart" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">Tables to Check</h3>
+                        <div class="flex items-center space-x-4 mb-3">
+                             <button id="selectAllBtn" class="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition">Select All</button>
+                             <button id="deselectAllBtn" class="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition">Deselect All</button>
+                        </div>
+                        <div id="table-checkboxes" class="space-y-2 max-h-80 overflow-y-auto pr-2">
+                            <!-- Checkboxes will be dynamically inserted here -->
+                        </div>
+                    </div>
+                    
+                    <button id="generateQueryBtn" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform transform hover:scale-105 shadow-md">
+                        Generate Query
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Panel: Generated Query -->
+            <div class="lg:w-2/3 bg-gray-900 p-6 rounded-2xl shadow-lg border border-gray-700 flex flex-col">
+                 <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-white">Generated SQL Query</h2>
+                    <button id="copyQueryBtn" class="bg-gray-700 text-gray-300 font-semibold py-2 px-4 rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500 transition">
+                        Copy to Clipboard
+                    </button>
+                </div>
+                <textarea id="sqlOutput" readonly class="w-full h-full flex-grow bg-gray-800 text-gray-300 p-4 border border-gray-600 rounded-md resize-none font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Configuration for all tables and their respective date columns
+            const tables = [
+                { name: 'fabm_bidding_demand_traffic_d', dateColumn: 'fabm_est_stats_date' },
+                { name: 'facp_campaign_performance_h', dateColumn: 'facp_est_stats_date' },
+                { name: 'facp_cross_performance', dateColumn: 'facp_est_stats_date' },
+                { name: 'fadl_demand_level_engage_d', dateColumn: 'fadl_est_stats_date' },
+                { name: 'fads_demand_supply_revenue', dateColumn: 'fads_est_stats_date' },
+                { name: 'famv_master_aggregate_h', dateColumn: 'famv_utc_stats_date' },
+                { name: 'fapd_proxy_demand_ob_extac_m', dateColumn: 'fapd_est_stats_date' },
+                { name: 'fape_publishers_extac_d', dateColumn: 'fape_est_stats_date' },
+                { name: 'fapg_publisher_gmo_boost_geo_traffic_d', dateColumn: 'fapg_est_stats_date' },
+                { name: 'fapl_page_level_engage_d', dateColumn: 'fapl_est_stats_date' },
+                { name: 'fasc_spend_based_cross', dateColumn: 'fasc_est_stats_date' },
+                { name: 'fass_same_store_d', dateColumn: 'fass_est_stats_date' },
+                { name: 'fass_spend_based_supply', dateColumn: 'fass_est_stats_date' },
+                { name: 'fast_section_traffic_d', dateColumn: 'fast_est_stats_date' },
+                { name: 'fatr_em_trigger_rate', dateColumn: 'fatr_est_stats_date' },
+                { name: 'faud_small_table_d', dateColumn: 'faud_est_stats_date' },
+                { name: 'faup_publisher_daily_upfront_payment', dateColumn: 'faup_est_stats_date' },
+            ];
+
+            const checkboxContainer = document.getElementById('table-checkboxes');
+            
+            // Dynamically create checkboxes for each table
+            tables.sort((a, b) => a.name.localeCompare(b.name)).forEach(table => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = table.name;
+                checkbox.value = table.name;
+                checkbox.dataset.dateColumn = table.dateColumn;
+                checkbox.className = 'h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500';
+                checkbox.checked = true; // Start with all selected
+                
+                const label = document.createElement('label');
+                label.htmlFor = table.name;
+                label.textContent = table.name;
+                label.className = 'ml-3 block text-sm text-gray-900';
+                
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                checkboxContainer.appendChild(div);
+            });
+
+            // --- Event Listeners ---
+            const generateBtn = document.getElementById('generateQueryBtn');
+            const copyBtn = document.getElementById('copyQueryBtn');
+            const selectAllBtn = document.getElementById('selectAllBtn');
+            const deselectAllBtn = document.getElementById('deselectAllBtn');
+            const sqlOutput = document.getElementById('sqlOutput');
+
+            selectAllBtn.addEventListener('click', () => {
+                checkboxContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+            });
+            
+            deselectAllBtn.addEventListener('click', () => {
+                checkboxContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            });
+
+            generateBtn.addEventListener('click', generateQuery);
+            
+            copyBtn.addEventListener('click', () => {
+                 if (!sqlOutput.value) return;
+                 sqlOutput.select();
+                 document.execCommand('copy'); // execCommand is used for broad compatibility
+                 copyBtn.textContent = 'Copied!';
+                 setTimeout(() => {
+                     copyBtn.textContent = 'Copy to Clipboard';
+                 }, 2000);
+            });
+
+            // --- Core Functions ---
+            function generateQuery() {
+                const projectId = document.getElementById('projectId').value.trim();
+                const datasetId = document.getElementById('datasetId').value.trim();
+
+                if (!projectId || !datasetId) {
+                    sqlOutput.value = "Error: Please provide a Project ID and Dataset ID.";
+                    return;
+                }
+
+                const selectedCheckboxes = checkboxContainer.querySelectorAll('input[type="checkbox"]:checked');
+                
+                if (selectedCheckboxes.length === 0) {
+                    sqlOutput.value = "Please select at least one table to generate the query.";
+                    return;
+                }
+
+                const queryParts = Array.from(selectedCheckboxes).map(cb => {
+                    const tableName = cb.value;
+                    const dateColumn = cb.dataset.dateColumn;
+                    const fullTableName = `\`${projectId}.${datasetId}.${tableName}\``;
+                    
+                    // This is the template for each sub-query
+                    return `
+-- Table: ${tableName}
+(
+  WITH date_range AS (SELECT MIN(DATE(${dateColumn})) AS min_date, MAX(DATE(${dateColumn})) AS max_date 
+                      FROM ${fullTableName}),
+       all_dates AS (SELECT missing_date 
+                     FROM UNNEST(GENERATE_DATE_ARRAY((SELECT min_date FROM date_range), (SELECT max_date FROM date_range))) AS missing_date)
+  SELECT '${tableName}' AS table_name, all_dates.missing_date
+  FROM all_dates
+  LEFT JOIN ${fullTableName} AS t ON all_dates.missing_date = DATE(t.${dateColumn})
+  WHERE t.${dateColumn} IS NULL
+)`;
+                });
+                
+                const finalQuery = `WITH all_tables_missing_dates AS (
+${queryParts.join('\n)\nUNION ALL\n')}
+)
+SELECT
+  table_name,
+  missing_date
+FROM
+  all_tables_missing_dates
+ORDER BY
+  table_name,
+  missing_date;`;
+
+                sqlOutput.value = finalQuery;
+            }
+            
+            // Generate query on initial load
+            generateQuery();
+        });
+    </script>
+</body>
+</html>
+
