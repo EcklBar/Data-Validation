@@ -192,20 +192,27 @@
                     const dateColumn = cb.dataset.dateColumn;
                     const fullTableName = `\`${projectId}.${datasetId}.${tableName}\``;
                     
-                    return `
--- Table: ${tableName}
-(
-  WITH date_range AS (SELECT MIN(DATE(${dateColumn})) AS min_date, MAX(DATE(${dateColumn})) AS max_date 
-                      FROM ${fullTableName}),
-       all_dates AS (SELECT missing_date 
-                     FROM UNNEST(GENERATE_DATE_ARRAY((SELECT min_date FROM date_range), (SELECT max_date FROM date_range))) AS missing_date)
-  SELECT '${tableName}' AS table_name, all_dates.missing_date
-  FROM all_dates
-  LEFT JOIN ${fullTableName} AS t ON all_dates.missing_date = DATE(t.${dateColumn})
-  WHERE t.${dateColumn} IS NULL
+                    // A self-contained, valid subquery for each table, wrapped in parentheses.
+                    return `(
+  -- Query for ${tableName}
+  SELECT
+    '${tableName}' AS table_name,
+    missing_date
+  FROM
+    UNNEST(
+      GENERATE_DATE_ARRAY(
+        (SELECT MIN(DATE(${dateColumn})) FROM ${fullTableName}),
+        (SELECT MAX(DATE(${dateColumn})) FROM ${fullTableName})
+      )
+    ) AS missing_date
+  LEFT JOIN
+    ${fullTableName} AS t ON missing_date = DATE(t.${dateColumn})
+  WHERE
+    t.${dateColumn} IS NULL
 )`;
                 });
                 
+                // Join all the parenthesized subqueries with UNION ALL
                 const finalQuery = `${queryParts.join('\nUNION ALL\n')}
 ORDER BY
   table_name,
@@ -269,5 +276,4 @@ ORDER BY
     </script>
 </body>
 </html>
-
 
