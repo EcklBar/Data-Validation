@@ -317,21 +317,61 @@
                         <div id="directory" class="tab-content">
                             <h3>Directory Structure</h3>
                             <pre>
+```
 dbt/
-└── dbt_bi/
-    ├── models/
-    │   ├── staging/
-    │   ├── intermediate/
-    │   └── mart/
-    │       ├── cross/
-    │       ├── demand/
-    │       │   ├── dimensions/
-    │       │   ├── facts/
-    │       │   └── ...
-    │       └── supply/
-    ├── macros/
-    ├── seeds/
-    └── dbt_project.yml</pre>
+├── dbt_bi/
+│   ├── analyses/
+│   ├── dbt_packages/
+│   ├── logs/
+│   ├── macros/
+│   ├── models/
+│   │   ├── intermediate/
+|   |   |   ├── cross/
+│   │   │   │   ├── dimensions/
+│   │   │   │   ├── facts/
+│   │   │   │   ├── historical/
+│   │   │   │   └── mart/
+│   │   │   ├── demand/
+│   │   │   │   ├── facts/
+│   │   │   │   ├── historical/
+│   │   │   │   └── mart/
+│   │   │   └── supply/
+│   │   │       ├── dimensions/
+│   │   │       ├── facts/
+│   │   │       ├── historical/
+│   │   │       └── mart/          
+│   │   ├── mart/
+│   │   │   ├── cross/
+│   │   │   │   ├── dimensions/
+│   │   │   │   ├── facts/
+│   │   │   │   ├── historical/
+│   │   │   │   └── mart/
+│   │   │   ├── demand/
+│   │   │   │   ├── facts/
+│   │   │   │   ├── historical/
+│   │   │   │   └── mart/
+│   │   │   └── supply/
+│   │   │       ├── dimensions/
+│   │   │       ├── facts/
+│   │   │       ├── historical/
+│   │   │       └── mart/
+│   │   ├── staging/
+│   │   │   ├── cross/
+│   │   │   │   ├── facts/
+│   │   │   │   └── historical/
+│   │   │   ├── demand/
+│   │   │   │   ├── dimensions/
+│   │   │   │   └── facts/
+│   │   │   └── supply/
+│   |   |   |   ├── dimensions/
+│   │   │   │   └── facts/
+│   │   └── __source.yml
+│   ├── seeds/
+│   ├── snapshots/
+│   ├── target/
+│   ├── .gitignore
+│   └── dbt_project.yml
+```</pre>
                             <p>Please ensure you create your model in the correct folder. For example, a traffic ads table should be developed in <code>mart/demand/facts</code>.</p>
                         </div>
                         
