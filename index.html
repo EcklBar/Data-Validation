@@ -487,6 +487,12 @@ dbt/
                             
                             <dt><strong>Big table (1–5TB) with dashboards running once a day or less:</strong></dt>
                             <dd>→ Use <strong>LookML</strong>. Low frequency doesn't justify the overhead of a Mart.</dd>
+
+                            <dt><strong>Multiple big tables with extra logic, and data needs to be retained long-term (1+ year):</strong></dt>
+                            <dd>→ Use <strong>Mart</strong>. Long-term storage and complex transformations are more efficient when materialized in a stable table.</dd>
+                            
+                            <dt><strong>Multiple big tables with extra logic, but data only needs to be retained short-term (&lt;2 months):</strong></dt>
+                            <dd>→ Use <strong>LookML</strong>. Since the retention period is short, building a Mart is not necessary.</dd>
                         </dl>
                         <div class="note"><strong>Note:</strong> These are general guidelines. A small table might still require a Mart if the logic is very complex or if queries consume too many resources.</div>
                     </div>
