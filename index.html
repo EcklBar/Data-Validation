@@ -233,7 +233,7 @@
     <div class="container">
         <header class="header">
             <h1>dbt Onboarding Guide</h1>
-            <p class="meta">Created by Rotem Hazan, last modified by Bar Eckl on Sep 30, 2025</p>
+            <p class="meta">Created by Rotem Hazan, designed by Bar Eckl</p>
         </header>
 
         <div class="accordion">
@@ -416,7 +416,7 @@ dbt/
                 <div class="accordion-content">
                     <div class="accordion-content-inner">
                         <p>Your dbt models are triggered by <strong>Apache Airflow</strong>. We use a tool called Cosmos to connect dbt and Airflow. Models run automatically once their source tables (DataX tables) are ready and release their triggers.</p>
-                        <p>You can find available output triggers on this <a href="#">Kibana dashboard</a> (last 14 days).</p>
+                        <p>You can find available output triggers on this <a href="https://kibana.outbrain.com/s/eslogs/app/dashboards#/view/c2e3c3d0-f192-11ee-9fe4-dd59f4ff92fd?_g=h@4270108">Kibana dashboard</a> (last 14 days).</p>
                         <div class="note"><strong>Note:</strong> Triggers from <code>bq-outbrain-research.prod</code> tables follow the pattern: <code>table_name_is_ready_in_bq</code>.</div>
 
                         <h3>Adding a New Model to the Schedule</h3>
