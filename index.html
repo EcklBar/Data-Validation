@@ -391,7 +391,7 @@ dbt/
                                         <li><code>View</code>: To create a view instead of a table.</li>
                                     </ul>
                                 </li>
-                                <li><strong>Branching:</strong> Create a ticket under the EPIC <strong>BIP-600</strong>. Name your branch <code>BIP-[issue_id]-your_branch_name</code>.</li>
+                                <li><strong>Branching:</strong> Create a ticket under the EPIC <a href="https://jira.outbrain.com/browse/BIP-600"> <strong>BIP-600</strong>. Name your branch <code>BIP-[issue_id]-your_branch_name</code>.</li>
                                 <li><strong>YAML Generation:</strong> After creating or changing a model, generate its YAML file with: <br><code>dbt run-operation generate_model_yaml --args '{"model_names": ["your_model_name"]}'</code></li>
                                 <li><strong>Testing:</strong> When testing with <code>dbt run</code>, specify a one-day range to reduce system load: <code>dbt run -s your_model_name --vars '{"date_range": "1 day"}'</code></li>
                                  <li><strong>Naming Conventions:</strong>
