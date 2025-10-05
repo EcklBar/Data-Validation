@@ -25,9 +25,6 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #6b7280; /* gray-500 */
         }
-        .hidden {
-            display: none;
-        }
     </style>
 </head>
 <body class="antialiased text-gray-800">
@@ -35,28 +32,13 @@
     <div class="container mx-auto p-4 md:p-8">
         <header class="text-center mb-8">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Data Validation Query Builder</h1>
-            <p class="text-lg text-gray-600 mt-2">Generate BigQuery SQL to check for missing dates or null values in your tables.</p>
+            <p class="text-lg text-gray-600 mt-2">Generate BigQuery SQL to check for missing dates in your tables.</p>
         </header>
 
         <div class="flex flex-col lg:flex-row gap-8">
 
-            <!-- Left Panel: Controls -->
             <div class="lg:w-1/3 bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
                 <div class="space-y-6">
-                    <div>
-                        <label for="validationType" class="block text-sm font-medium text-gray-700 mb-2">Validation Type</label>
-                        <select id="validationType" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
-                            <option value="missingDates" selected>Check for Missing Dates</option>
-                            <option value="nullCheck">Check for Null Values</option>
-                        </select>
-                    </div>
-
-                    <div id="nullCheckInputs" class="hidden space-y-1">
-                        <label for="columnsToCheck" class="block text-sm font-medium text-gray-700">Columns to Check for Nulls</label>
-                        <input type="text" id="columnsToCheck" placeholder="e.g., clicks, impressions, revenue" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
-                        <p class="text-xs text-gray-500">Enter column names, separated by commas.</p>
-                    </div>
-
                     <div>
                         <label for="projectId" class="block text-sm font-medium text-gray-700 mb-1">Project ID</label>
                         <input type="text" id="projectId" value="bg-outbrain-bi" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
@@ -73,8 +55,7 @@
                              <button id="deselectAllBtn" class="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition">Deselect All</button>
                         </div>
                         <div id="table-checkboxes" class="space-y-2 max-h-60 overflow-y-auto pr-2">
-                            <!-- Checkboxes will be dynamically inserted here -->
-                        </div>
+                            </div>
                     </div>
                     
                     <button id="generateQueryBtn" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform transform hover:scale-105 shadow-md">
@@ -83,7 +64,6 @@
                 </div>
             </div>
 
-            <!-- Right Panel: Generated Query -->
             <div class="lg:w-2/3 bg-gray-900 p-6 rounded-2xl shadow-lg border border-gray-700 flex flex-col">
                  <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-semibold text-white">Generated SQL Query</h2>
@@ -147,9 +127,8 @@
             const selectAllBtn = document.getElementById('selectAllBtn');
             const deselectAllBtn = document.getElementById('deselectAllBtn');
             const sqlOutput = document.getElementById('sqlOutput');
-            const validationTypeSelect = document.getElementById('validationType');
-            const nullCheckInputs = document.getElementById('nullCheckInputs');
-
+            // Removed variables related to null check
+            
             selectAllBtn.addEventListener('click', () => {
                 checkboxContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
             });
@@ -158,13 +137,9 @@
                 checkboxContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
             });
             
-            validationTypeSelect.addEventListener('change', () => {
-                const isNullCheck = validationTypeSelect.value === 'nullCheck';
-                nullCheckInputs.classList.toggle('hidden', !isNullCheck);
-                generateQuery();
-            });
+            // Removed event listener for validationTypeSelect
 
-            generateBtn.addEventListener('click', generateQuery);
+            generateBtn.addEventListener('click', generateMissingDatesQuery);
             
             copyBtn.addEventListener('click', () => {
                  if (!sqlOutput.value) return;
@@ -174,14 +149,7 @@
                  setTimeout(() => { copyBtn.textContent = 'Copy to Clipboard'; }, 2000);
             });
 
-            function generateQuery() {
-                const validationType = validationTypeSelect.value;
-                if (validationType === 'missingDates') {
-                    generateMissingDatesQuery();
-                } else if (validationType === 'nullCheck') {
-                    generateNullCheckQuery();
-                }
-            }
+            // The main generateQuery function is no longer needed as there's only one type.
             
             function generateMissingDatesQuery() {
                 const { projectId, datasetId, selectedCheckboxes } = getCommonInputs();
@@ -192,7 +160,6 @@
                     const dateColumn = cb.dataset.dateColumn;
                     const fullTableName = `\`${projectId}.${datasetId}.${tableName}\``;
                     
-                    // A self-contained, valid subquery for each table, wrapped in parentheses.
                     return `(
   -- Query for ${tableName}
   SELECT
@@ -212,7 +179,6 @@
 )`;
                 });
                 
-                // Join all the parenthesized subqueries with UNION ALL
                 const finalQuery = `${queryParts.join('\nUNION ALL\n')}
 ORDER BY
   table_name,
@@ -221,36 +187,7 @@ ORDER BY
                 sqlOutput.value = finalQuery;
             }
 
-            function generateNullCheckQuery() {
-                const { projectId, datasetId, selectedCheckboxes } = getCommonInputs();
-                if (!projectId || !datasetId || selectedCheckboxes.length === 0) return;
-
-                const columnsToCheckInput = document.getElementById('columnsToCheck').value.trim();
-                if (!columnsToCheckInput) {
-                    sqlOutput.value = "Please enter at least one column name to check for null values.";
-                    return;
-                }
-                const columns = columnsToCheckInput.split(',').map(c => c.trim()).filter(c => c);
-
-                const countClauses = columns.map(col => `COUNTIF(${col} IS NULL) AS nulls_in_${col}`).join(',\n    ');
-
-                const queryParts = Array.from(selectedCheckboxes).map(cb => {
-                    const tableName = cb.value;
-                    const fullTableName = `\`${projectId}.${datasetId}.${tableName}\``;
-                    return `
--- Table: ${tableName}
-(
-  SELECT
-    '${tableName}' AS table_name,
-    ${countClauses},
-    COUNT(*) AS total_rows
-  FROM
-    ${fullTableName}
-)`;
-                });
-
-                sqlOutput.value = queryParts.join('\nUNION ALL\n') + ';';
-            }
+            // Removed the generateNullCheckQuery function entirely
 
             function getCommonInputs() {
                 const projectId = document.getElementById('projectId').value.trim();
@@ -271,9 +208,9 @@ ORDER BY
                 return { projectId, datasetId, selectedCheckboxes };
             }
             
-            generateQuery();
+            // Generate the query on initial load
+            generateMissingDatesQuery();
         });
     </script>
 </body>
 </html>
-
