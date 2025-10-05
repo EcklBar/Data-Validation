@@ -160,6 +160,12 @@
             white-space: pre;
         }
 
+        /* FIX: Added style for scrollable directory tree */
+        .directory-tree {
+            max-height: 400px; /* Set a max height */
+            overflow-y: auto;   /* Add vertical scrollbar when needed */
+        }
+
         .tabs {
             display: flex;
             border-bottom: 1px solid var(--border-color);
@@ -316,7 +322,7 @@
 
                         <div id="directory" class="tab-content">
                             <h3>Directory Structure</h3>
-                            <pre>
+                            <pre class="directory-tree">
 ```
 dbt/
 ├── dbt_bi/
