@@ -3,500 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>dbt Installation and Onboarding Guide</title>
+    <title>SQL Query Builder for Data Validation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --background-color: #f8f9fa;
-            --card-background: #ffffff;
-            --text-color: #34495e;
-            --heading-color: #2c3e50;
-            --border-color: #e0e0e0;
-            --code-bg: #2d2d2d;
-            --code-text: #f8f8f2;
-            --note-bg: #e8f4fd;
-            --note-border: #aed6f1;
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            line-height: 1.7;
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* gray-100 */
         }
-
-        .container {
-            max-width: 900px;
-            margin: 20px auto;
-            padding: 0 20px;
+        /* Simple scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
         }
-
-        .header {
-            text-align: center;
-            padding: 40px 20px;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 30px;
+        ::-webkit-scrollbar-track {
+            background: #e5e7eb; /* gray-200 */
         }
-
-        .header h1 {
-            color: var(--heading-color);
-            font-size: 2.8em;
-            font-weight: 700;
-            margin-bottom: 10px;
+        ::-webkit-scrollbar-thumb {
+            background: #9ca3af; /* gray-400 */
+            border-radius: 10px;
         }
-
-        .header .meta {
-            font-size: 0.9em;
-            color: #7f8c8d;
-        }
-
-        .accordion-item {
-            background-color: var(--card-background);
-            margin-bottom: 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .accordion-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 25px;
-            cursor: pointer;
-            background-color: #fff;
-            user-select: none;
-        }
-        
-        .accordion-header h2 {
-            font-size: 1.5em;
-            color: var(--heading-color);
-            margin: 0;
-            display: flex;
-            align-items: center;
-        }
-        
-        .accordion-header .icon {
-            margin-right: 15px;
-            font-size: 1.4em;
-        }
-
-        .accordion-header .toggle-icon {
-            font-size: 1.5em;
-            transition: transform 0.3s ease;
-            color: var(--secondary-color);
-        }
-
-        .accordion-item.active .toggle-icon {
-            transform: rotate(45deg);
-        }
-
-        .accordion-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease-in-out, padding 0.4s ease-in-out;
-            background-color: #fdfdfd;
-        }
-        
-        .accordion-content-inner {
-            padding: 0 30px 30px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        h3 {
-            color: var(--heading-color);
-            font-size: 1.3em;
-            margin-top: 25px;
-            margin-bottom: 15px;
-            border-bottom: 2px solid var(--secondary-color);
-            padding-bottom: 8px;
-        }
-
-        p, ul, li {
-            margin-bottom: 15px;
-        }
-        
-        ul {
-            padding-left: 20px;
-        }
-
-        a {
-            color: var(--secondary-color);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        a:hover {
-            color: #2980b9;
-            text-decoration: underline;
-        }
-
-        .note {
-            background-color: var(--note-bg);
-            border-left: 5px solid var(--note-border);
-            padding: 15px 20px;
-            margin: 20px 0;
-            border-radius: 5px;
-        }
-        
-        .note strong {
-             color: #1a5276;
-        }
-
-        pre {
-            background-color: var(--code-bg);
-            color: var(--code-text);
-            padding: 20px;
-            border-radius: 8px;
-            overflow-x: auto;
-            font-family: 'SF Mono', 'Consolas', 'Menlo', monospace;
-            font-size: 0.9em;
-            white-space: pre;
-        }
-
-        /* FIX: Added style for scrollable directory tree */
-        .directory-tree {
-            max-height: 400px; /* Set a max height */
-            overflow-y: auto;   /* Add vertical scrollbar when needed */
-        }
-
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 20px;
-            margin-top: 25px;
-        }
-
-        .tab-button {
-            padding: 12px 20px;
-            cursor: pointer;
-            border: none;
-            background-color: transparent;
-            font-size: 1em;
-            font-weight: 500;
-            color: #7f8c8d;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s ease;
-        }
-
-        .tab-button.active {
-            color: var(--secondary-color);
-            border-bottom: 3px solid var(--secondary-color);
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-        
-        .summary-steps ol {
-            list-style: none;
-            counter-reset: steps-counter;
-            padding-left: 0;
-        }
-        
-        .summary-steps li {
-            counter-increment: steps-counter;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: flex-start;
-        }
-        
-        .summary-steps li::before {
-            content: counter(steps-counter);
-            font-size: 1.2em;
-            font-weight: 700;
-            color: #fff;
-            background-color: var(--secondary-color);
-            width: 35px;
-            height: 35px;
-            min-width: 35px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280; /* gray-500 */
         }
     </style>
 </head>
-<body>
+<body class="antialiased text-gray-800">
 
-    <div class="container">
-        <header class="header">
-            <h1>dbt Onboarding Guide</h1>
-            <p class="meta">Created by Rotem Hazan, designed by Bar Eckl</p>
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Data Validation Query Builder</h1>
+            <p class="text-lg text-gray-600 mt-2">Generate BigQuery SQL to check for missing partitions in your tables.</p>
         </header>
 
-        <div class="accordion">
+        <div class="flex flex-col lg:flex-row gap-8">
 
-            <div class="accordion-item">
-                <div class="accordion-header">
-                    <h2><span class="icon">🤔</span>What is dbt?</h2>
-                    <span class="toggle-icon">+</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="accordion-content-inner">
-                        <p><strong>dbt (Data Build Tool)</strong> is an open-source framework that lets analytics and data teams build and maintain data models in a structured, reliable, and scalable way — directly inside your data warehouse.</p>
-                        <p>Unlike traditional ETL tools, dbt doesn’t extract or load data. Instead, it focuses entirely on the <strong>“T” – Transform</strong> — turning existing data into structured data marts, ready for analytics.</p>
-                        
-                        <h3>Data Mart vs. Data Warehouse Analogy</h3>
-                        <p>A <strong>Data Mart</strong> is a subset of a Data Warehouse that’s focused on a specific domain. Think of it like this:</p>
-                        <ul>
-                            <li><strong>Data Warehouse:</strong> A library with <em>all</em> the company’s data from every department.</li>
-                            <li><strong>Data Mart (DM):</strong> A smaller “section” of the library dedicated to a specific domain, like Marketing, Sales, or Finance.</li>
-                        </ul>
+            <div class="lg:w-1/3 bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
+                <div class="space-y-6">
+                    <div>
+                        <label for="projectId" class="block text-sm font-medium text-gray-700 mb-1">Project ID</label>
+                        <input type="text" id="projectId" value="bg-outbrain-bi" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
                     </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <div class="accordion-header">
-                    <h2><span class="icon">🛠️</span>Install IDE + dbt Environment</h2>
-                    <span class="toggle-icon">+</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="accordion-content-inner">
-                        <div class="note">
-                            <strong>Important:</strong> First, please check that you have the Outbrain organization in GitHub. If not, please open a <a href="https://outbrain.freshservice.com/a/catalog/request-items/143">ticket</a> to IT to grant access.
-                        </div>
-                        <p>To install the dbt environment, please use this <a href="https://expert-adventure-9j6p1lm.pages.github.io/">link</a> and follow the steps.</p>
-                        <p>A recording of the installation process is also available:</p>
-                        <ul>
-                            <li><a href="https://teads.zoom.us/rec/play/3vmM-1rFaKjPda4UgcKW9pCtlyS6WHTGmMLdDuL_k7uLg3K2L6l31vYHhXxW3oWjiw3hUd265ohXV2xc.GBQ67ZHSeIEQSLN0?autoplay=true&startTime=1755771293000">Zoom Link</a> (password: 1u#qC$G1)</li>
-                            <li><a href="https://drive.google.com/file/d/1o1vjGISwyaGeDtklXUpPf5-_dw4iq1Gf/view?usp=sharing">Google Drive Link</a></li>
-                        </ul>
+                    <div>
+                        <label for="datasetId" class="block text-sm font-medium text-gray-700 mb-1">Dataset ID</label>
+                        <input type="text" id="datasetId" value="mart" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
                     </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <div class="accordion-header">
-                    <h2><span class="icon">🎓</span>dbt Fundamentals & Training</h2>
-                    <span class="toggle-icon">+</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="accordion-content-inner">
-                        <p>You can choose which course you want to take to learn the basics of dbt. We also highly recommend learning Git fundamentals.</p>
-                        <ul>
-                            <li><a href="https://www.udemy.com/course/mastering-dbt-data-build-tool-bootcamp/learn/lecture/37303446#overview">dbt Bootcamp</a></li>
-                            <li><a href="https://learn.getdbt.com/courses/dbt-fundamentals">dbt Fundamentals</a> - This course covers dbt Cloud, but the core principles are the same for dbt Core, which we use.</li>
-                            <li><a href="https://docs.github.com/en/get-started/start-your-journey/hello-world">GitHub (GH) Course</a> - We recommend you complete this before working with an IDE (VSCode, Cursor, PyCharm).</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <div class="accordion-header">
-                    <h2><span class="icon">🏗️</span>dbt Project Structure</h2>
-                    <span class="toggle-icon">+</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="accordion-content-inner">
-                        <p>You will develop a Data Mart in our <strong>dags-bi-eng</strong> repository. The project is organized into a three-layer architecture to ensure clarity and maintainability.</p>
-                        
-                        <div class="tabs">
-                            <button class="tab-button active" onclick="openTab(event, 'layers')">Layers</button>
-                            <button class="tab-button" onclick="openTab(event, 'directory')">Directory Tree</button>
-                            <button class="tab-button" onclick="openTab(event, 'details')">Important Details</button>
-                        </div>
-
-                        <div id="layers" class="tab-content active">
-                            <h3>The Three Layers</h3>
-                            <p><strong>1. Staging:</strong> The first layer of your model. Here you create an aggregated query based on the source tables.</p>
-                            <p><strong>2. Intermediate:</strong> The second layer. Here you add more complex manipulations and conditions to your query.</p>
-                            <p><strong>3. Mart:</strong> The final layer. This query will become a materialized table after you run the <code>dbt run</code> command.</p>
-                            <div class="note">
-                                <strong>Note:</strong> The Staging and Intermediate layers are not mandatory, but they are highly recommended for complex queries or models with multiple source tables.
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Partition Type</label>
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center">
+                                <input id="partition-daily" name="partitionType" type="radio" value="daily" checked class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                <label for="partition-daily" class="ml-2 block text-sm text-gray-900">Daily</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input id="partition-hourly" name="partitionType" type="radio" value="hourly" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                <label for="partition-hourly" class="ml-2 block text-sm text-gray-900">Hourly</label>
                             </div>
                         </div>
+                    </div>
 
-                        <div id="directory" class="tab-content">
-                            <h3>Directory Structure</h3>
-                            <pre class="directory-tree">
-```
-dbt/
-├── dbt_bi/
-│   ├── analyses/
-│   ├── dbt_packages/
-│   ├── logs/
-│   ├── macros/
-│   ├── models/
-│   │   ├── intermediate/
-|   |   |   ├── cross/
-│   │   │   │   ├── dimensions/
-│   │   │   │   ├── facts/
-│   │   │   │   ├── historical/
-│   │   │   │   └── mart/
-│   │   │   ├── demand/
-│   │   │   │   ├── facts/
-│   │   │   │   ├── historical/
-│   │   │   │   └── mart/
-│   │   │   └── supply/
-│   │   │       ├── dimensions/
-│   │   │       ├── facts/
-│   │   │       ├── historical/
-│   │   │       └── mart/          
-│   │   ├── mart/
-│   │   │   ├── cross/
-│   │   │   │   ├── dimensions/
-│   │   │   │   ├── facts/
-│   │   │   │   ├── historical/
-│   │   │   │   └── mart/
-│   │   │   ├── demand/
-│   │   │   │   ├── facts/
-│   │   │   │   ├── historical/
-│   │   │   │   └── mart/
-│   │   │   └── supply/
-│   │   │       ├── dimensions/
-│   │   │       ├── facts/
-│   │   │       ├── historical/
-│   │   │       └── mart/
-│   │   ├── staging/
-│   │   │   ├── cross/
-│   │   │   │   ├── facts/
-│   │   │   │   └── historical/
-│   │   │   ├── demand/
-│   │   │   │   ├── dimensions/
-│   │   │   │   └── facts/
-│   │   │   └── supply/
-│   |   |   |   ├── dimensions/
-│   │   │   │   └── facts/
-│   │   └── __source.yml
-│   ├── seeds/
-│   ├── snapshots/
-│   ├── target/
-│   ├── .gitignore
-│   └── dbt_project.yml
-```</pre>
-                            <p>Please ensure you create your model in the correct folder. For example, a traffic ads table should be developed in <code>mart/demand/facts</code>.</p>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">Tables to Check</h3>
+                        <div class="flex items-center space-x-4 mb-3">
+                            <button id="selectAllBtn" class="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition">Select All</button>
+                            <button id="deselectAllBtn" class="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition">Deselect All</button>
                         </div>
-                        
-                        <div id="details" class="tab-content">
-                             <h3>Key Configuration Points</h3>
-                            <ul>
-                                <li><strong>Materializations:</strong> How your model is built in the warehouse. The main types are:
-                                    <ul>
-                                        <li><code>Table</code>: For dimension tables.</li>
-                                        <li><code>Incremental</code>: For fact tables, loading data incrementally.</li>
-                                        <li><code>View</code>: To create a view instead of a table.</li>
-                                    </ul>
-                                </li>
-                                <li><strong>Branching:</strong> Create a ticket under the EPIC <a href="https://jira.outbrain.com/browse/BIP-600"> <strong>BIP-600</strong></a>. Name your branch <code>BIP-[issue_id]-your_branch_name</code>.</li>
-                                <li><strong>YAML Generation:</strong> After creating or changing a model, generate its YAML file with: <br><code>dbt run-operation generate_model_yaml --args '{"model_names": ["your_model_name"]}'</code></li>
-                                <li><strong>Testing:</strong> When testing with <code>dbt run</code>, specify a one-day range to reduce system load: <code>dbt run -s your_model_name --vars '{"date_range": "1 day"}'</code></li>
-                                 <li><strong>Naming Conventions:</strong>
-                                    <ul>
-                                        <li><code>fa_</code> for fact tables</li>
-                                        <li><code>di_</code> for dimension tables</li>
-                                        <li><code>ma_</code> for mart tables (joining facts and dims)</li>
-                                        <li><code>hi_</code> for historical tables</li>
-                                    </ul>
-                                </li>
-                            </ul>
+                        <div id="table-checkboxes" class="space-y-2 max-h-60 overflow-y-auto pr-2">
                         </div>
                     </div>
+                    
+                    <button id="generateQueryBtn" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform transform hover:scale-105 shadow-md">
+                        Generate Query
+                    </button>
                 </div>
             </div>
 
-            <div class="accordion-item">
-                <div class="accordion-header">
-                    <h2><span class="icon">🚀</span>How Models are Triggered</h2>
-                    <span class="toggle-icon">+</span>
+            <div class="lg:w-2/3 bg-gray-900 p-6 rounded-2xl shadow-lg border border-gray-700 flex flex-col">
+                 <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-white">Generated SQL Query</h2>
+                    <button id="copyQueryBtn" class="bg-gray-700 text-gray-300 font-semibold py-2 px-4 rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500 transition">
+                        Copy to Clipboard
+                    </button>
                 </div>
-                <div class="accordion-content">
-                    <div class="accordion-content-inner">
-                        <p>Your dbt models are triggered by <strong>Apache Airflow</strong>. We use a tool called Cosmos to connect dbt and Airflow. Models run automatically once their source tables (DataX tables) are ready and release their triggers.</p>
-                        <p>You can find available output triggers on this <a href="https://kibana.outbrain.com/s/eslogs/app/dashboards#/view/c2e3c3d0-f192-11ee-9fe4-dd59f4ff92fd?_g=h@4270108">Kibana dashboard</a> (last 14 days).</p>
-                        <div class="note"><strong>Note:</strong> Triggers from <code>bq-outbrain-research.prod</code> tables follow the pattern: <code>table_name_is_ready_in_bq</code>.</div>
-
-                        <h3>Adding a New Model to the Schedule</h3>
-                        <p>After developing your DM, you need to add an object to the <code>dbt_models_data_prod</code> template. For example:</p>
-                        <pre>
-{
-    "table_name": "masr_source_referrer",
-    "input_trigger": ["fast_section_traffic_d_is_ready_in_bq"],
-    "input_trigger_type": BIEDbtInputTriggerType.HOURLY,
-    "table_partition_type": BIEDbtPartitionType.DAILY,
-    "table_type": BIEDbtTableType.MART,
-}</pre>
-                        <h3>Pull Request (PR) Workflow</h3>
-                        <ul>
-                            <li><strong>Code Review:</strong> Have at least one team member review your SQL logic.</li>
-                            <li><strong>Open a PR:</strong> When opening a PR, include a screenshot confirming a successful run in the dev environment. If you created a fact or historical table, specify its retention period in the PR description.</li>
-                            <li><strong>Notify the Team:</strong> Share your PR in the <code>#ask-bi-engineering</code> channel for approval.</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            
-             <div class="accordion-item">
-                <div class="accordion-header">
-                    <h2><span class="icon">✅</span>Summary - Your Workflow</h2>
-                    <span class="toggle-icon">+</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="accordion-content-inner summary-steps">
-                       <ol>
-                           <li>Develop your Data Mart on a local branch and test it. This stage creates your DM in the dev datasets.</li>
-                           <li>Create a new object in the Airflow DAGs template using the relevant source triggers.</li>
-                           <li>Open a Pull Request (PR) with all relevant files, a screenshot of your successful test run, and a short description.</li>
-                           <li>Send the PR in the #ask-bi-engineering Slack channel for code review and approval.</li>
-                           <li>After the PR is approved, merge it into the master branch.</li>
-                       </ol>
-                        <div class="note"><strong>Good luck, and don't hesitate to reach out to us!</strong></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <div class="accordion-header">
-                    <h2><span class="icon">⚖️</span>Data Mart or LookML?</h2>
-                    <span class="toggle-icon">+</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="accordion-content-inner">
-                        <h3>The Main Principle</h3>
-                        <ul>
-                            <li><strong>LookML:</strong> Better for small, lightweight tables or when queries are not heavy or frequent.</li>
-                            <li><strong>Data Mart:</strong> Better for large/heavy tables or when queries run frequently and need pre-aggregated data.</li>
-                        </ul>
-
-                        <h3>Breakdown by Case</h3>
-                        <dl>
-                            <dt><strong>Small table (&lt;1TB) with partition expiration:</strong></dt>
-                            <dd>→ Use <strong>LookML</strong>. The data is automatically cleaned up.</dd>
-
-                            <dt><strong>Small table (&lt;1TB) without partition expiration:</strong></dt>
-                            <dd>→ Use <strong>Mart</strong>. Ensures structure as the table may grow indefinitely.</dd>
-
-                            <dt><strong>Huge table (>5TB):</strong></dt>
-                            <dd>→ Always use a <strong>Mart</strong>. Direct queries are slow and costly.</dd>
-
-                            <dt><strong>Big table (1–5TB) with dashboards running multiple times a day:</strong></dt>
-                            <dd>→ Use a <strong>Mart</strong>. Avoids expensive, repeated queries on raw data.</dd>
-                            
-                            <dt><strong>Big table (1–5TB) with dashboards running once a day or less:</strong></dt>
-                            <dd>→ Use <strong>LookML</strong>. Low frequency doesn't justify the overhead of a Mart.</dd>
-
-                            <dt><strong>Multiple big tables with extra logic, and data needs to be retained long-term (1+ year):</strong></dt>
-                            <dd>→ Use <strong>Mart</strong>. Long-term storage and complex transformations are more efficient when materialized in a stable table.</dd>
-                            
-                            <dt><strong>Multiple big tables with extra logic, but data only needs to be retained short-term (&lt;2 months):</strong></dt>
-                            <dd>→ Use <strong>LookML</strong>. Since the retention period is short, building a Mart is not necessary.</dd>
-                        </dl>
-                        <div class="note"><strong>Note:</strong> These are general guidelines. A small table might still require a Mart if the logic is very complex or if queries consume too many resources.</div>
-                    </div>
-                </div>
+                <textarea id="sqlOutput" readonly class="w-full h-full flex-grow bg-gray-800 text-gray-300 p-4 border border-gray-600 rounded-md resize-none font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
             </div>
 
         </div>
@@ -504,44 +93,170 @@ dbt/
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const accordionItems = document.querySelectorAll('.accordion-item');
+            const tables = [
+                { name: 'fabm_bidding_demand_traffic_d', dateColumn: 'fabm_est_stats_date' },
+                { name: 'facp_campaign_performance_h', dateColumn: 'facp_est_stats_date' },
+                { name: 'facp_cross_performance', dateColumn: 'facp_est_stats_date' },
+                { name: 'fadl_demand_level_engage_d', dateColumn: 'fadl_est_stats_date' },
+                { name: 'famv_master_aggregate_h', dateColumn: 'famv_utc_stats_date' },
+                { name: 'fapd_proxy_demand_ob_extac_m', dateColumn: 'fapd_est_stats_date' },
+                { name: 'fape_publishers_extac_d', dateColumn: 'fape_est_stats_date' },
+                { name: 'fapg_publisher_gmo_boost_geo_traffic_d', dateColumn: 'fapg_est_stats_date' },
+                { name: 'fapl_page_level_engage_d', dateColumn: 'fapl_est_stats_date' },
+                { name: 'fasc_spend_based_cross', dateColumn: 'fasc_est_stats_date' },
+                { name: 'fass_same_store_d', dateColumn: 'fass_est_stats_date' },
+                { name: 'fass_spend_based_supply', dateColumn: 'fass_est_stats_date' },
+                { name: 'fast_section_traffic_d', dateColumn: 'fast_est_stats_date' },
+                { name: 'fatr_em_trigger_rate', dateColumn: 'fatr_est_stats_date' },
+                { name: 'faud_small_table_d', dateColumn: 'faud_est_stats_date' },
+                { name: 'faup_publisher_daily_upfront_payment', dateColumn: 'faup_est_stats_date' },
+            ];
 
-            accordionItems.forEach(item => {
-                const header = item.querySelector('.accordion-header');
-                header.addEventListener('click', () => {
-                    const content = item.querySelector('.accordion-content');
-                    const isActive = item.classList.contains('active');
+            const checkboxContainer = document.getElementById('table-checkboxes');
+            
+            tables.sort((a, b) => a.name.localeCompare(b.name)).forEach(table => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = table.name;
+                checkbox.value = table.name;
+                checkbox.dataset.dateColumn = table.dateColumn;
+                checkbox.className = 'h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500';
+                checkbox.checked = false;
+                
+                const label = document.createElement('label');
+                label.htmlFor = table.name;
+                label.textContent = table.name;
+                label.className = 'ml-3 block text-sm text-gray-900';
+                
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                checkboxContainer.appendChild(div);
+            });
+
+            const generateBtn = document.getElementById('generateQueryBtn');
+            const copyBtn = document.getElementById('copyQueryBtn');
+            const selectAllBtn = document.getElementById('selectAllBtn');
+            const deselectAllBtn = document.getElementById('deselectAllBtn');
+            const sqlOutput = document.getElementById('sqlOutput');
+            const partitionRadios = document.querySelectorAll('input[name="partitionType"]');
+
+            selectAllBtn.addEventListener('click', () => {
+                checkboxContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+                generateMissingPartitionsQuery(); // Regenerate query on change
+            });
+            
+            deselectAllBtn.addEventListener('click', () => {
+                checkboxContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                generateMissingPartitionsQuery(); // Regenerate query on change
+            });
+            
+            generateBtn.addEventListener('click', generateMissingPartitionsQuery);
+            
+            copyBtn.addEventListener('click', () => {
+                 if (!sqlOutput.value) return;
+                 sqlOutput.select();
+                 document.execCommand('copy');
+                 copyBtn.textContent = 'Copied!';
+                 setTimeout(() => { copyBtn.textContent = 'Copy to Clipboard'; }, 2000);
+            });
+
+            // UPDATED: Add listener for checkboxes to regenerate query instantly
+            checkboxContainer.addEventListener('change', generateMissingPartitionsQuery);
+
+            // UPDATED: Add listener for radio buttons to regenerate query instantly
+            partitionRadios.forEach(radio => {
+                radio.addEventListener('change', generateMissingPartitionsQuery);
+            });
+
+            // UPDATED: Main function renamed for clarity
+            function generateMissingPartitionsQuery() {
+                const { projectId, datasetId, selectedCheckboxes } = getCommonInputs();
+                if (!projectId || !datasetId || selectedCheckboxes.length === 0) return;
+
+                // UPDATED: Get selected partition type
+                const partitionType = document.querySelector('input[name="partitionType"]:checked').value;
+
+                const queryParts = Array.from(selectedCheckboxes).map(cb => {
+                    const tableName = cb.value;
+                    const dateColumn = cb.dataset.dateColumn;
+                    const fullTableName = `\`${projectId}.${datasetId}.${tableName}\``;
                     
-                    // Close all items first for single-item-open behavior
-                    // accordionItems.forEach(i => {
-                    //    i.classList.remove('active');
-                    //    i.querySelector('.accordion-content').style.maxHeight = null;
-                    // });
-
-                    if (!isActive) {
-                        item.classList.add('active');
-                        content.style.maxHeight = content.scrollHeight + 'px';
-                        content.style.paddingTop = '30px';
+                    if (partitionType === 'hourly') {
+                        // Query for HOURLY partitions
+                        return `(
+  -- Query for ${tableName} (Hourly)
+  SELECT
+    '${tableName}' AS table_name,
+    missing_hour
+  FROM
+    UNNEST(
+      GENERATE_TIMESTAMP_ARRAY(
+        (SELECT TIMESTAMP_TRUNC(MIN(${dateColumn}), HOUR) FROM ${fullTableName}),
+        (SELECT TIMESTAMP_TRUNC(MAX(${dateColumn}), HOUR) FROM ${fullTableName}),
+        INTERVAL 1 HOUR
+      )
+    ) AS missing_hour
+  LEFT JOIN
+    ${fullTableName} AS t ON missing_hour = TIMESTAMP_TRUNC(t.${dateColumn}, HOUR)
+  WHERE
+    t.${dateColumn} IS NULL
+)`;
                     } else {
-                        item.classList.remove('active');
-                        content.style.maxHeight = null;
-                        content.style.paddingTop = '0';
+                        // Query for DAILY partitions (original logic)
+                        return `(
+  -- Query for ${tableName} (Daily)
+  SELECT
+    '${tableName}' AS table_name,
+    missing_date
+  FROM
+    UNNEST(
+      GENERATE_DATE_ARRAY(
+        (SELECT MIN(DATE(${dateColumn})) FROM ${fullTableName}),
+        (SELECT MAX(DATE(${dateColumn})) FROM ${fullTableName})
+      )
+    ) AS missing_date
+  LEFT JOIN
+    ${fullTableName} AS t ON missing_date = DATE(t.${dateColumn})
+  WHERE
+    t.${dateColumn} IS NULL
+)`;
                     }
                 });
-            });
+                
+                // UPDATED: Dynamically set the order by column
+                const dateColumnAlias = partitionType === 'hourly' ? 'missing_hour' : 'missing_date';
+                const finalQuery = `${queryParts.join('\nUNION ALL\n')}
+ORDER BY
+  table_name,
+  ${dateColumnAlias};`;
+
+                sqlOutput.value = finalQuery;
+            }
+
+            function getCommonInputs() {
+                const projectId = document.getElementById('projectId').value.trim();
+                const datasetId = document.getElementById('datasetId').value.trim();
+
+                if (!projectId || !datasetId) {
+                    sqlOutput.value = "Error: Please provide a Project ID and Dataset ID.";
+                    return {};
+                }
+
+                const selectedCheckboxes = checkboxContainer.querySelectorAll('input[type="checkbox"]:checked');
+                
+                if (selectedCheckboxes.length === 0) {
+                    sqlOutput.value = "Please select at least one table to generate the query.";
+                    return { projectId, datasetId, selectedCheckboxes: [] };
+                }
+
+                return { projectId, datasetId, selectedCheckboxes };
+            }
+            
+            // Generate the query on initial load
+            generateMissingPartitionsQuery();
         });
-
-        function openTab(evt, tabName) {
-            const tabcontent = evt.target.closest('.accordion-content-inner').querySelectorAll(".tab-content");
-            tabcontent.forEach(tc => tc.style.display = "none");
-
-            const tablinks = evt.target.closest('.accordion-content-inner').querySelectorAll(".tab-button");
-            tablinks.forEach(tl => tl.className = tl.className.replace(" active", ""));
-
-            document.getElementById(tabName).style.display = "block";
-            evt.currentTarget.className += " active";
-        }
     </script>
-
 </body>
 </html>
