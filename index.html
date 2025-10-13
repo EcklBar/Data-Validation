@@ -94,6 +94,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const tables = [
+                // Original tables
                 { name: 'fabm_bidding_demand_traffic_d', dateColumn: 'fabm_est_stats_date' },
                 { name: 'facp_campaign_performance_h', dateColumn: 'facp_est_stats_date' },
                 { name: 'facp_cross_performance', dateColumn: 'facp_est_stats_date' },
@@ -110,6 +111,32 @@
                 { name: 'fatr_em_trigger_rate', dateColumn: 'fatr_est_stats_date' },
                 { name: 'faud_small_table_d', dateColumn: 'faud_est_stats_date' },
                 { name: 'faup_publisher_daily_upfront_payment', dateColumn: 'faup_est_stats_date' },
+                // Added tables
+                { name: 'hier_exchange_rate_small_d', dateColumn: 'date' },
+                { name: 'stg_faas_ad_section_amplify_conversion_d', dateColumn: 'date' },
+                { name: 'stg_faas_ad_section_amplify_d', dateColumn: 'date' },
+                { name: 'stg_faue_unified_events_temp', dateColumn: 'date' },
+                { name: 'stg_faue_unified_events', dateColumn: 'date' },
+                { name: 'stg_obrt_rtb_filter_temp', dateColumn: 'date' },
+                { name: 'stg_obrt_rtb_filter', dateColumn: 'date' },
+                { name: 'stg_rtb_bidding_data_temp', dateColumn: 'date' },
+                { name: 'stg_rtb_bidding_data', dateColumn: 'date' },
+                { name: 'stg_zemanta_unified_events_temp', dateColumn: 'date' },
+                { name: 'stg_zemanta_unified_events', dateColumn: 'date' },
+                { name: 'int_fape_publishers_extac_d', dateColumn: 'date' },
+                { name: 'faet_engage_traffic_lv', dateColumn: 'date' },
+                { name: 'fatf_unified_teads_forecast_d', dateColumn: 'date' },
+                { name: 'faut_unified_teads_traffic_fpa_d', dateColumn: 'date' },
+                { name: 'hisi_smart_insight_d', dateColumn: 'date' },
+                { name: 'hisi_smart_insight_d_dbt_tmp', dateColumn: 'date' },
+                { name: 'hisj_sellers_json_d', dateColumn: 'date' },
+                { name: 'hism_salesforce_mailalert', dateColumn: 'date' },
+                { name: 'hism_salesforce_mailalert_dbt_tmp', dateColumn: 'date' },
+                { name: 'hiuc_user_override_card_constraints_d', dateColumn: 'date' },
+                { name: 'hiwk_widget_abtest_kpi_goals_d', dateColumn: 'date' },
+                { name: 'famc_campaign_conversions_h', dateColumn: 'date' },
+                { name: 'faue_campaign_performance_h', dateColumn: 'date' },
+                { name: 'unified_event_campaign_conversions', dateColumn: 'date' },
             ];
 
             const checkboxContainer = document.getElementById('table-checkboxes');
@@ -144,12 +171,12 @@
 
             selectAllBtn.addEventListener('click', () => {
                 checkboxContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
-                generateMissingPartitionsQuery(); // Regenerate query on change
+                generateMissingPartitionsQuery();
             });
             
             deselectAllBtn.addEventListener('click', () => {
                 checkboxContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-                generateMissingPartitionsQuery(); // Regenerate query on change
+                generateMissingPartitionsQuery();
             });
             
             generateBtn.addEventListener('click', generateMissingPartitionsQuery);
@@ -162,20 +189,16 @@
                  setTimeout(() => { copyBtn.textContent = 'Copy to Clipboard'; }, 2000);
             });
 
-            // UPDATED: Add listener for checkboxes to regenerate query instantly
             checkboxContainer.addEventListener('change', generateMissingPartitionsQuery);
 
-            // UPDATED: Add listener for radio buttons to regenerate query instantly
             partitionRadios.forEach(radio => {
                 radio.addEventListener('change', generateMissingPartitionsQuery);
             });
 
-            // UPDATED: Main function renamed for clarity
             function generateMissingPartitionsQuery() {
                 const { projectId, datasetId, selectedCheckboxes } = getCommonInputs();
                 if (!projectId || !datasetId || selectedCheckboxes.length === 0) return;
 
-                // UPDATED: Get selected partition type
                 const partitionType = document.querySelector('input[name="partitionType"]:checked').value;
 
                 const queryParts = Array.from(selectedCheckboxes).map(cb => {
@@ -184,7 +207,7 @@
                     const fullTableName = `\`${projectId}.${datasetId}.${tableName}\``;
                     
                     if (partitionType === 'hourly') {
-                        // Query for HOURLY partitions
+                        // **FIXED**: Query for HOURLY partitions with DATETIME to TIMESTAMP casting
                         return `(
   -- Query for ${tableName} (Hourly)
   SELECT
@@ -193,13 +216,13 @@
   FROM
     UNNEST(
       GENERATE_TIMESTAMP_ARRAY(
-        (SELECT TIMESTAMP_TRUNC(MIN(${dateColumn}), HOUR) FROM ${fullTableName}),
-        (SELECT TIMESTAMP_TRUNC(MAX(${dateColumn}), HOUR) FROM ${fullTableName}),
+        TIMESTAMP((SELECT TIMESTAMP_TRUNC(MIN(${dateColumn}), HOUR) FROM ${fullTableName})),
+        TIMESTAMP((SELECT TIMESTAMP_TRUNC(MAX(${dateColumn}), HOUR) FROM ${fullTableName})),
         INTERVAL 1 HOUR
       )
     ) AS missing_hour
   LEFT JOIN
-    ${fullTableName} AS t ON missing_hour = TIMESTAMP_TRUNC(t.${dateColumn}, HOUR)
+    ${fullTableName} AS t ON missing_hour = TIMESTAMP(TIMESTAMP_TRUNC(t.${dateColumn}, HOUR))
   WHERE
     t.${dateColumn} IS NULL
 )`;
@@ -225,7 +248,6 @@
                     }
                 });
                 
-                // UPDATED: Dynamically set the order by column
                 const dateColumnAlias = partitionType === 'hourly' ? 'missing_hour' : 'missing_date';
                 const finalQuery = `${queryParts.join('\nUNION ALL\n')}
 ORDER BY
