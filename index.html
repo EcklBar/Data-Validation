@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apache Kafka: Complete Data Engineering Notebook</title>
+    <title>Apache Kafka: The Complete Guide</title>
     <style>
         :root {
             --primary-color: #2C3E50;
@@ -12,6 +12,8 @@
             --sidebar-width: 260px;
             --text-color: #333;
             --code-bg: #f4f4f4;
+            --terminal-bg: #2d2d2d;
+            --terminal-text: #4af626;
             --border-color: #ddd;
         }
 
@@ -56,7 +58,7 @@
             text-decoration: none;
             color: #555;
             font-weight: 500;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             transition: color 0.2s;
             display: block;
         }
@@ -102,6 +104,7 @@
             text-transform: uppercase;
             font-size: 0.9rem;
             letter-spacing: 1px;
+            font-weight: 700;
         }
 
         /* Notebook Elements */
@@ -137,6 +140,13 @@
             margin-top: 15px;
         }
 
+        .three-col-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
         .api-table, .comparison-table {
             width: 100%;
             border-collapse: collapse;
@@ -159,20 +169,66 @@
             background-color: #f8f9fa;
         }
 
-        /* Visual Tags */
-        .tag-blue { background: #3498db; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; }
-        .tag-green { background: #27ae60; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; }
+        /* Terminal/Code Styling */
+        .terminal {
+            background-color: var(--terminal-bg);
+            color: var(--terminal-text);
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', Courier, monospace;
+            overflow-x: auto;
+            margin: 10px 0;
+            border-left: 5px solid #777;
+        }
         
-        .diagram-request {
+        .terminal-comment {
+            color: #aaa;
+            font-style: italic;
+        }
+
+        .inline-code {
+            background-color: var(--code-bg);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Courier New', Courier, monospace;
+            color: #c7254e;
+            border: 1px solid #ddd;
+        }
+
+        .step-list {
+            list-style-type: none;
+            counter-reset: step-counter;
+            padding: 0;
+        }
+        .step-list li {
+            counter-increment: step-counter;
+            margin-bottom: 20px;
+            position: relative;
+            padding-left: 40px;
+        }
+        .step-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: var(--accent-color);
+            color: white;
+            width: 25px;
+            height: 25px;
+            text-align: center;
+            border-radius: 50%;
+            line-height: 25px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        /* Distribution Logos placeholder styling */
+        .distro-header {
             display: flex;
             align-items: center;
-            justify-content: center;
-            background: #fafafa;
-            border: 2px dashed #ccc;
-            color: #666;
-            padding: 15px;
-            margin: 15px 0;
-            font-style: italic;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+            font-weight: bold;
         }
 
     </style>
@@ -189,17 +245,18 @@
         <li><a href="#brokers">4.1 Brokers & Cluster</a></li>
         <li><a href="#topics">4.2 Topics & Partitions</a></li>
         <li><a href="#replication">4.3 Replication</a></li>
-        <li><a href="#producers">4.4 Producers</a></li>
-        <li><a href="#consumers">4.5 Consumers & Groups</a></li>
-        <li><a href="#zookeeper">4.6 Zookeeper</a></li>
         <li><a href="#apis">5. Core APIs</a></li>
-        <li><a href="#use-cases">6. Use Cases & Industry</a></li>
+        <li><a href="#distributions">6. Main Distributions</a></li>
+        <li><a href="#installation">7. Installation Guide</a></li>
+        <li><a href="#cli">8. CLI & Technical Implementation</a></li>
+        <li><a href="#topic-management">8.1 Topic Management</a></li>
+        <li><a href="#producer-consumer">8.2 Producer & Consumer</a></li>
     </ul>
 </nav>
 
 <main>
     <h1>Apache Kafka Notebook</h1>
-    <p><em>Comprehensive guide based on Naya College Data Engineering curriculum. Covering architecture, fundamentals, and core APIs.</em></p>
+    <p><em>Comprehensive guide based on Naya College Data Engineering curriculum.</em></p>
 
     <section id="intro">
         <h2>1. What is Apache Kafka?</h2>
@@ -218,7 +275,6 @@
                     <li>Batch processing (nightly/hourly).</li>
                     <li>Not real-time.</li>
                     <li>Complex point-to-point connections ("Spaghetti Architecture").</li>
-                    <li>Hard to scale.</li>
                 </ul>
             </div>
             <div class="concept-card">
@@ -227,7 +283,6 @@
                     <li>Real-time event capturing.</li>
                     <li>Fault tolerant & Parallel processing.</li>
                     <li>Decoupled Producers and Consumers.</li>
-                    <li>Serves as the "Source of Truth" pipeline.</li>
                 </ul>
             </div>
         </div>
@@ -236,175 +291,186 @@
     <section id="architecture">
         <h2>3. High-Level Architecture</h2>
         <p>Kafka creates a central streaming platform that ingests data from <strong>Producers</strong> and serves it to <strong>Consumers</strong>.</p>
-        
-        
-        <h3>Data Flow Recap</h3>
-        <ol>
-            <li><strong>Producers:</strong> Write data into the Kafka cluster from multiple sources (Apps, DBs, Sensors).</li>
-            <li><strong>Streaming Platform:</strong> Stores, processes, and manages the data streams.</li>
-            <li><strong>Consumers:</strong> Read data for use cases (Monitoring, Analytics, Marketing).</li>
-            <li><strong>Stream Processors:</strong> Consumers can also rewrite data back to Kafka (becoming Producers) to create derived streams.</li>
-        </ol>
-        
-        <p><strong>Connectors:</strong> Specialized components (Source/Sink) that can capture events from systems (like RDBMS changes) and pull them into the pipeline without writing custom code.</p>
-    </section>
+            </section>
 
     <section id="fundamentals">
         <h2>4. Fundamental Concepts</h2>
-        <p>To operate Kafka, one must understand the hierarchy of its internal components.</p>
+        <h3 id="brokers">4.1 Brokers & Cluster</h3>
+        <p>A <strong>Broker</strong> is a Kafka server. A <strong>Cluster</strong> is multiple brokers working together. If you connect to one broker, you connect to the whole cluster.</p>
 
-        <h3 id="brokers">4.1 Brokers & The Cluster</h3>
-        <div class="concept-card">
-            <ul>
-                <li><strong>Broker:</strong> A single Kafka server.</li>
-                <li><strong>Cluster:</strong> Composed of multiple brokers (typically 3 or more for resilience).</li>
-                <li><strong>Connectivity:</strong> Connecting to one broker means you are connected to the entire cluster.</li>
-                <li><strong>Resiliency:</strong> Each broker holds <em>some</em> data, but not all. If one fails, data is available on others via replication.</li>
-            </ul>
-        </div>
-
-        <h3 id="topics">4.2 Topics, Partitions & Offsets</h3>
-        
-        <h4>The Topic</h4>
-        <p>A <strong>Topic</strong> is a logical channel to which producers publish and consumers subscribe. It defines a stream of a particular type of data (e.g., "logs", "clicks", "transactions").</p>
-        <ul>
-            <li>Identified by a <strong>unique name</strong>.</li>
-            <li><strong>Immutable:</strong> Once data is published, it cannot be changed.</li>
-            <li><strong>Retention:</strong> Configurable (default is typically 1 week).</li>
-        </ul>
-
-        <h4>The Partition</h4>
-        <p>Topics are split into <strong>Partitions</strong>. This is the main mechanism for parallelism and scalability.</p>
-        
-        
+        <h3 id="topics">4.2 Topics & Partitions</h3>
+        <p>A <strong>Topic</strong> is a logical category for data. Topics are split into <strong>Partitions</strong> for scalability.</p>
         <div class="warning-block">
-            <strong>CRITICAL RULE:</strong> Data ordering/sequencing is guaranteed <strong>ONLY within a single partition</strong>. Sequencing is NOT guaranteed across different partitions in the same topic.
+            <strong>CRITICAL RULE:</strong> Data ordering is guaranteed <strong>ONLY within a single partition</strong>, not across the whole topic.
         </div>
-
-        <ul style="background: #fff; padding: 20px; border: 1px solid #ddd;">
-            <li><strong>Partition 0, 1, 2...:</strong> Messages are distributed among partitions.</li>
-            <li><strong>Offset:</strong> An incremental ID assigned to each message within a partition. The first message is offset 0.</li>
-            <li>There is no limitation on the number of partitions per topic.</li>
-        </ul>
-
-        <h3 id="replication">4.3 Replication Factor</h3>
-        <p>To ensure High Availability (HA), Kafka copies partitions across multiple brokers.</p>
         
-        
-        <table class="api-table">
-            <tr>
-                <th>Component</th>
-                <th>Role</th>
-            </tr>
-            <tr>
-                <td><strong>Leader</strong></td>
-                <td>The specific partition replica where all Reads and Writes occur. Only one broker can be a leader for a given partition.</td>
-            </tr>
-            <tr>
-                <td><strong>Follower</strong></td>
-                <td>Passive replicas that copy data from the leader. If the leader fails, a follower becomes the new leader.</td>
-            </tr>
-            <tr>
-                <td><strong>Replication Factor</strong></td>
-                <td>The number of copies (e.g., Factor 3 = 1 Leader + 2 Followers). Cannot exceed the number of available brokers.</td>
-            </tr>
-        </table>
-
-        <h3 id="producers">4.4 Producers</h3>
-        <p>Producers write data to topics. They only need to know the Topic Name and one Broker to connect.</p>
-        <p><strong>Acknowledgments (Acks):</strong> Producers choose how durable they want the write to be:</p>
-        <ul>
-            <li><span class="tag-blue">acks = 0</span>: Fire and forget. Fast, but risky (data loss possible).</li>
-            <li><span class="tag-blue">acks = 1</span>: Leader received the message. Default. Balanced.</li>
-            <li><span class="tag-blue">acks = all</span>: Leader AND all replicas received the message. Slowest, but zero data loss.</li>
-        </ul>
-
-        <h3 id="consumers">4.5 Consumers & Consumer Groups</h3>
-        <p>Consumers read data. To scale reading (e.g., if data is coming in at 1GB/sec but a consumer can only read 50MB/sec), we use <strong>Consumer Groups</strong>.</p>
-        
-        
-        <div class="concept-card">
-            <h4>Consumer Group Rules</h4>
-            <ul>
-                <li>A group contains one or more consumers working together.</li>
-                <li><strong>The Golden Rule:</strong> Each partition is consumed by <strong>only one member</strong> of the group.</li>
-                <li>This ensures no duplicate processing and maintains order per partition.</li>
-                <li>If you have 4 partitions and 4 consumers, each reads 1. If you add a 5th consumer, it will sit idle.</li>
-            </ul>
-        </div>
-
-        <h3 id="zookeeper">4.6 Zookeeper</h3>
-        <p>Zookeeper is mandatory for running Kafka (though this is changing in very new versions, historically it is essential). It acts as the coordinator.</p>
-        <ul>
-            <li>Manages the list of Brokers (detects new or deleted brokers).</li>
-            <li>Performs <strong>Leader Election</strong> for partitions.</li>
-            <li>Stores topic configurations and quotas.</li>
-        </ul>
+        <h3 id="replication">4.3 Replication</h3>
+        <p>Partitions are replicated for fault tolerance. There is one <strong>Leader</strong> (handles all reads/writes) and multiple <strong>Followers</strong> (passive backups).</p>
     </section>
 
     <section id="apis">
-        <h2>5. Core APIs & Distributions</h2>
-        
-        
-        <table class="api-table">
-            <thead>
-                <tr>
-                    <th>API Name</th>
-                    <th>Function</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><strong>Producer API</strong></td>
-                    <td>Allows applications to send data streams to topics in the Kafka cluster.</td>
-                </tr>
-                <tr>
-                    <td><strong>Consumer API</strong></td>
-                    <td>Allows applications to read data streams from topics.</td>
-                </tr>
-                <tr>
-                    <td><strong>Streams API</strong></td>
-                    <td>Allows for complex transformations (filter, map, aggregate) of data streams within Kafka.</td>
-                </tr>
-                <tr>
-                    <td><strong>Connect API</strong></td>
-                    <td><strong>Source:</strong> Reusable code to pull data from external systems (DBs) into Kafka.<br><strong>Sink:</strong> Reusable code to push data from Kafka to external systems (S3, HDFS).</td>
-                </tr>
-                <tr>
-                    <td><strong>AdminClient API</strong></td>
-                    <td>Manages Kafka objects (topics, brokers) programmatically.</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <h3>Main Distributions</h3>
-        <p>While Apache Kafka is open source, several vendors provide managed or enhanced versions:</p>
-        <ul>
-            <li><strong>Confluent:</strong> Founded by the creators of Kafka.</li>
-            <li><strong>Cloudera / Hortonworks</strong></li>
-            <li><strong>Cloud Managed:</strong> AWS Amazon Kinesis (alternative) / MSK, GCP Pub/Sub (alternative).</li>
-        </ul>
+        <h2>5. Core APIs</h2>
+        <p>Kafka provides 5 main APIs: <strong>Producer, Consumer, Streams, Connect (Source/Sink), and AdminClient</strong>.</p>
     </section>
 
-    <section id="use-cases">
-        <h2>6. Real-World Use Cases</h2>
+    <section id="distributions">
+        <h2>6. Main Distributions</h2>
+        <p>While Kafka is open source, there are several ways to consume it, ranging from raw open source to managed enterprise solutions.</p>
+
+        <div class="three-col-grid">
+            <div class="concept-card">
+                <h4>Apache Kafka (Native)</h4>
+                <p>The pure open-source version.</p>
+                <ul>
+                    <li>100% Open Source code.</li>
+                    <li>Good for standalone implementation.</li>
+                    <li>Requires manual configuration.</li>
+                </ul>
+            </div>
+
+            <div class="concept-card">
+                <h4>Confluent</h4>
+                <p>Founded by the creators of Kafka.</p>
+                <ul>
+                    <li><strong>Community:</strong> Open source (free).</li>
+                    <li><strong>Enterprise:</strong> Includes Control Center UI, Security, and more.</li>
+                    <li>Built-in <strong>Kafka Connectors</strong>.</li>
+                </ul>
+            </div>
+
+            <div class="concept-card">
+                <h4>Cloudera (CDH)</h4>
+                <p>Integrated into the Hadoop ecosystem.</p>
+                <ul>
+                    <li>Managed via <strong>Cloudera Manager</strong>.</li>
+                    <li>Good if you already use CDH/Hadoop.</li>
+                </ul>
+            </div>
+
+            <div class="concept-card">
+                <h4>Hortonworks (HDP)</h4>
+                <p>100% Open source, no licensing fees.</p>
+                <ul>
+                    <li>Managed via <strong>Ambari</strong>.</li>
+                    <li>Similar use case to Cloudera (Hadoop environments).</li>
+                </ul>
+            </div>
+
+            <div class="concept-card">
+                <h4>AWS Amazon Kinesis</h4>
+                <p>Cloud-native alternative.</p>
+                <ul>
+                    <li>Runs in AWS cloud environment.</li>
+                    <li>Integrates with other AWS products.</li>
+                </ul>
+            </div>
+
+            <div class="concept-card">
+                <h4>GCP Pub/Sub</h4>
+                <p>Google Cloud alternative.</p>
+                <ul>
+                    <li>Asynchronous messaging.</li>
+                    <li>Reliable, many-to-many communication.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section id="installation">
+        <h2>7. Installation Basics (Linux / Mac)</h2>
+        
+        <ol class="step-list">
+            <li>
+                <strong>Install Java (JDK)</strong><br>
+                Kafka runs on the JVM. Download from Oracle or OpenJDK.
+            </li>
+            <li>
+                <strong>Download Kafka</strong><br>
+                Get the latest binary from <span class="inline-code">kafka.apache.org/downloads</span>.
+            </li>
+            <li>
+                <strong>Unpack</strong><br>
+                <div class="terminal">$ tar -xzf &lt;kafka_tarball&gt;<br>$ cd &lt;kafka_directory&gt;</div>
+            </li>
+            <li>
+                <strong>Start Zookeeper</strong><br>
+                Zookeeper must be running <em>before</em> Kafka starts.
+                <div class="terminal">$ bin/zookeeper-server-start.sh config/zookeeper.properties</div>
+            </li>
+            <li>
+                <strong>Start Kafka Server</strong><br>
+                <div class="terminal">$ bin/kafka-server-start.sh config/server.properties</div>
+            </li>
+        </ol>
+    </section>
+
+    <section id="cli">
+        <h2>8. CLI & Technical Implementation</h2>
+        <p>Once Kafka is running, we use Command Line Interface (CLI) tools to manage topics and send/receive data.</p>
+        
+        
+        <h3 id="topic-management">8.1 Topic Management</h3>
+        
+        <div class="concept-card">
+            <h4>Create a Topic</h4>
+            <p>We define the name, number of partitions, and replication factor.</p>
+            <div class="terminal">
+<span class="terminal-comment"># Create a topic named 'kafka-tst-01'</span>
+$ kafka-topics --create --zookeeper localhost:2181/kafka \
+  --replication-factor 1 \
+  --partitions 1 \
+  --topic kafka-tst-01
+            </div>
+            <ul>
+                <li><span class="inline-code">--zookeeper</span>: The host/port for the Zookeeper service (Port 2181).</li>
+                <li><span class="inline-code">--replication-factor</span>: How many copies of data to keep.</li>
+                <li><span class="inline-code">--partitions</span>: How many splits for the topic.</li>
+            </ul>
+        </div>
+
+        <div class="concept-card">
+            <h4>List Topics</h4>
+            <div class="terminal">
+$ kafka-topics --zookeeper localhost:2181/kafka --list
+            </div>
+            <p><strong>Output Example:</strong><br>
+            <span style="color:red">kafka-tst-01</span><br>
+            <span style="color:red">kafka-tst-02</span></p>
+        </div>
+
+        <h3 id="producer-consumer">8.2 Producer & Consumer Tutorial</h3>
+        <p>In this basic tutorial, we create a <strong>Source</strong> (Producer) and a <strong>Target</strong> (Consumer) in two separate terminal windows.</p>
+
         <div class="two-col-grid">
             <div class="concept-card">
-                <h4>Netflix</h4>
-                <p>Uses Kafka for recommendation systems and saving "last stop point" on movies across devices.</p>
+                <h4>Step 1: The Producer (Source)</h4>
+                <p>Sets up a process to <strong>capture</strong> incoming messages (stdin).</p>
+                <div class="terminal">
+$ kafka-console-producer \
+  --broker-list localhost:9092 \
+  --topic kafka-tst-01
+                </div>
+                <ul>
+                    <li><span class="inline-code">--broker-list</span>: List of available brokers (Port 9092 is default).</li>
+                </ul>
             </div>
+
             <div class="concept-card">
-                <h4>PayPal</h4>
-                <p>Real-time fraud detection and transaction consistency.</p>
+                <h4>Step 2: The Consumer (Target)</h4>
+                <p>Sets up a process to <strong>write</strong> (display) incoming messages.</p>
+                <div class="terminal">
+$ kafka-console-consumer \
+  --bootstrap-server localhost:9092 \
+  --topic kafka-tst-01
+                </div>
+                <ul>
+                    <li><span class="inline-code">--bootstrap-server</span>: Initial host acting as starting point for the client.</li>
+                </ul>
             </div>
-            <div class="concept-card">
-                <h4>Uber</h4>
-                <p>Matching riders and drivers in real-time. (Also created Kafka Streams).</p>
-            </div>
-            <div class="concept-card">
-                <h4>Walmart</h4>
-                <p>Handling billions of transactions/inventory updates daily.</p>
-            </div>
+        </div>
+        
+        <div class="note-block">
+            <strong>Action:</strong> Type a message in the Producer terminal -> It appears instantly in the Consumer terminal. This confirms real-time streaming.
         </div>
     </section>
 
